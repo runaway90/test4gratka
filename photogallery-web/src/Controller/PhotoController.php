@@ -12,7 +12,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 class PhotoController extends AbstractController
 {
@@ -25,7 +24,6 @@ class PhotoController extends AbstractController
         $this->likeService = $likeService;
     }
 
-    #[Route('/photo/{id}/like', name: 'photo_like')]
     public function like($id, Request $request, EntityManagerInterface $em): Response
     {
         $session = $request->getSession();

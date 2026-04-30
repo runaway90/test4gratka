@@ -7,13 +7,11 @@ namespace App\Controller;
 use App\Service\AuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AuthController extends AbstractController
 {
-    #[Route('/auth/{username}/{token}', name: 'auth_login')]
     public function login(string $username, string $token, AuthService $authService): Response
     {
         try {
@@ -28,7 +26,6 @@ class AuthController extends AbstractController
         return $this->redirectToRoute('home');
     }
 
-    #[Route('/logout', name: 'logout')]
     public function logout(AuthService $authService): Response
     {
         $authService->logout();

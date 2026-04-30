@@ -9,10 +9,8 @@ use App\Likes\LikeRepository;
 use App\Repository\PhotoRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 
 class HomeController extends AbstractController
 {
@@ -25,10 +23,6 @@ class HomeController extends AbstractController
         $this->likeRepository = $likeRepository;
     }
 
-    /**
-     * @Route("/", name="home")
-     * @return JsonResponse
-     */
     public function index(Request $request, EntityManagerInterface $em): Response
     {
         $photos = $this->photoRepository->findAllWithUsers();

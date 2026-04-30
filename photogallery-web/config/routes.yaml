@@ -1,6 +1,19 @@
-# Define your routes here
-controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
-    type: attribute
+auth_login:
+    path: /auth/{username}/{token}
+    controller: App\Controller\AuthController::login
+
+logout:
+    path: /logout
+    controller: App\Controller\AuthController::logout
+
+home:
+    path: /
+    controller: App\Controller\HomeController::index
+
+photo_like:
+    path: /photo/{id}/like
+    controller: App\Controller\PhotoController::like
+
+profile:
+    path: /profile
+    controller: App\Controller\ProfileController::profile
