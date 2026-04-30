@@ -23,4 +23,6 @@
 
 TASK 1 
 Naprawa blędów:
- - SQL-injection w AuthController.php
+ ~~- SQL-injection w AuthController.php~~
+- Inkapsulacja Auth i Profile, tworzenie servisów.
+- Dodanie DI
