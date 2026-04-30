@@ -20,3 +20,7 @@
 ## Gotowe do pracy nad zadaniem
   
 *Dodałem gotowe rozwiązanie w run.sh dla pierwszej installacji oraz czyszczenia kontenerów i bazy danych*
+
+TASK 1 
+Naprawa blędów:
+ - SQL-injection w AuthController.php

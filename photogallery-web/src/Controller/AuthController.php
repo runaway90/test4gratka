@@ -15,16 +15,22 @@ class AuthController extends AbstractController
     #[Route('/auth/{username}/{token}', name: 'auth_login')]
     public function login(string $username, string $token, Connection $connection, Request $request): Response
     {
-        $sql = "SELECT * FROM auth_tokens WHERE token = '$token'";
-        $result = $connection->executeQuery($sql);
+        // T1-01. SQL-injection protected
+        $sql = "SELECT * FROM auth_tokens WHERE token = :token";
+        $stmt = $connection->prepare($sql);
+        $stmt->bindValue('token', $token);
+        $result = $stmt->executeQuery();
         $tokenData = $result->fetchAssociative();
 
         if (!$tokenData) {
             return new Response('Invalid token', 401);
         }
 
-        $userSql = "SELECT * FROM users WHERE username = '$username'";
-        $userResult = $connection->executeQuery($userSql);
+        // T1-01. SQL-injection protected
+        $userSql = "SELECT * FROM users WHERE username = :username";
+        $userStmt = $connection->prepare($userSql);
+        $userStmt->bindValue('username', $username);
+        $userResult = $userStmt->executeQuery();
         $userData = $userResult->fetchAssociative();
 
         if (!$userData) {
