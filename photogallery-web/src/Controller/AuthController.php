@@ -4,54 +4,34 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use Doctrine\DBAL\Connection;
+use App\Service\AuthService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AuthController extends AbstractController
 {
     #[Route('/auth/{username}/{token}', name: 'auth_login')]
-    public function login(string $username, string $token, Connection $connection, Request $request): Response
+    public function login(string $username, string $token, AuthService $authService): Response
     {
-        // T1-01. SQL-injection protected
-        $sql = "SELECT * FROM auth_tokens WHERE token = :token";
-        $stmt = $connection->prepare($sql);
-        $stmt->bindValue('token', $token);
-        $result = $stmt->executeQuery();
-        $tokenData = $result->fetchAssociative();
-
-        if (!$tokenData) {
-            return new Response('Invalid token', 401);
+        try {
+            $authService->login($username, $token);
+            $this->addFlash('success', 'Welcome back, ' . $username . '!');
+        } catch (AccessDeniedException $e) {
+            return new Response($e->getMessage(), 401);
+        } catch (NotFoundHttpException $e) {
+            return new Response($e->getMessage(), 404);
         }
-
-        // T1-01. SQL-injection protected
-        $userSql = "SELECT * FROM users WHERE username = :username";
-        $userStmt = $connection->prepare($userSql);
-        $userStmt->bindValue('username', $username);
-        $userResult = $userStmt->executeQuery();
-        $userData = $userResult->fetchAssociative();
-
-        if (!$userData) {
-            return new Response('User not found', 404);
-        }
-
-        $session = $request->getSession();
-        $session->set('user_id', $userData['id']);
-        $session->set('username', $username);
-
-        $this->addFlash('success', 'Welcome back, ' . $username . '!');
 
         return $this->redirectToRoute('home');
     }
 
     #[Route('/logout', name: 'logout')]
-    public function logout(Request $request): Response
+    public function logout(AuthService $authService): Response
     {
-        $session = $request->getSession();
-        $session->clear();
-
+        $authService->logout();
         $this->addFlash('info', 'You have been logged out successfully.');
 
         return $this->redirectToRoute('home');
