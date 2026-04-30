@@ -25,14 +25,15 @@ Ten projekt składa się z dwóch oddzielnych aplikacji z własnymi bazami danyc
 ### Uruchomienie wszystkich projektów
 
 ```bash
-# Nadaj uprawnienia wykonywania (tylko za pierwszym razem)
-chmod +x run.sh
 
-# Uruchom wszystkie projekty
+# Pełna instalacja od zera (kontenerery + zależności + migracje + seedy)
+./run.sh install
+# Szybki start (tylko uruchomienie kontenerów)
 ./run.sh start
-
-# Zatrzymaj wszystkie projekty
+# Zatrzymanie projektów
 ./run.sh stop
+# Czyszczenie (usuwa kontenery i bazy danych)
+./run.sh clean
 
 # Konfiguracja API
 cd photogallery-api

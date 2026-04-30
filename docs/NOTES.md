@@ -18,3 +18,5 @@
 - Celem jest ułatwienie wdrażania się w konkretny projekt bez zamieszania z drugim
 
 ## Gotowe do pracy nad zadaniem
+  
+*Dodałem gotowe rozwiązanie w run.sh dla pierwszej installacji oraz czyszczenia kontenerów i bazy danych*
