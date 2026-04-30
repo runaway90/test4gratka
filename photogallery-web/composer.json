@@ -7,6 +7,7 @@
     "doctrine/doctrine-bundle": "^2.10",
     "doctrine/doctrine-migrations-bundle": "^3.6",
     "doctrine/orm": "^2.16",
+    "lexik/jwt-authentication-bundle": "*",
     "symfony/asset": "^6.4",
     "symfony/dotenv": "^6.4",
     "symfony/form": "^6.4",

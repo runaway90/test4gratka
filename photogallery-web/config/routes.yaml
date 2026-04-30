@@ -1,6 +1,7 @@
-auth_login:
-    path: /auth/{username}/{token}
+login:
+    path: /login
     controller: App\Controller\AuthController::login
+    methods: [GET, POST]
 
 logout:
     path: /logout

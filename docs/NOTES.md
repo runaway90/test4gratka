@@ -25,4 +25,6 @@ TASK 1
 Naprawa blędów:
  ~~- SQL-injection w AuthController.php~~
 - Inkapsulacja Auth i Profile, tworzenie servisów.
-- Dodanie DI
+- Dodanie DI w kontrolerach
+- Przeniosłem routes w plik yaml
+- przepisanie authorizacji za pomocą JWT tokena(nie może on być zmienną w URL)
