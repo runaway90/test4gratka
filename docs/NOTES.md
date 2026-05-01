@@ -30,8 +30,8 @@
 - Stworzyłem ExceptionListener
 - Przepisanie authorizacji za pomocą JWT tokena(nie może on być zmienną w URL). Automatyczna instalacja.
 - Zmiana ID na UUID jako unikalny identyfikator obiektów. Przepisanie seed-ów
-- 
-- 
+- poprawa działania frontu
+- fix like i unlike zdjęc
 
 # Dlaczego przepisałem system authoryzacji?
 ### Stary System (`AuthToken` + Sesja)

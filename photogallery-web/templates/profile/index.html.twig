@@ -101,7 +101,7 @@
             line-height: 1.6;
         }
         
-        .back-button {
+        .back-button, .action-button {
             display: inline-block;
             margin-top: 30px;
             padding: 12px 30px;
@@ -112,9 +112,13 @@
             font-weight: 600;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
         }
         
-        .back-button:hover {
+        .back-button:hover, .action-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
@@ -145,6 +149,36 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        .api-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .api-section h2 {
+            text-align: center;
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-family: inherit;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+
+        .form-actions {
+            text-align: center;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
     </style>
 {% endblock %}
 
@@ -169,14 +203,14 @@
                 <div class="profile-field-label">Email</div>
                 <div class="profile-field-value">{{ user.email }}</div>
             </div>
-            
+
             {% if user.age %}
                 <div class="profile-field">
                     <div class="profile-field-label">Age</div>
                     <div class="profile-field-value">{{ user.age }} years old</div>
                 </div>
             {% endif %}
-            
+
             {% if user.name %}
                 <div class="profile-field">
                     <div class="profile-field-label">Full Name</div>
@@ -203,10 +237,24 @@
                 <div class="stat-label">Photos</div>
             </div>
         </div>
+
+        <div class="api-section">
+            <h2>PhoenixAPI Integration</h2>
+            {{ form_start(tokenForm) }}
+            <div class="form-group">
+                {{ form_widget(tokenForm.apiToken) }}
+            </div>
+            <div class="form-actions">
+                {{ form_widget(tokenForm.save, {'attr': {'class': 'action-button'}}) }}
+                <form action="{{ path('profile_import') }}" method="post" style="display: inline;">
+                    <button type="submit" class="action-button">Import Photos</button>
+                </form>
+            </div>
+            {{ form_end(tokenForm) }}
+        </div>
         
-        <div style="text-align: center;">
+        <div style="text-align: center; margin-top: 20px;">
             <a href="{{ path('home') }}" class="back-button">← Back to Gallery</a>
         </div>
     </div>
 {% endblock %}
-

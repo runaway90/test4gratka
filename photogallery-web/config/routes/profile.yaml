@@ -1,0 +1,9 @@
+profile:
+    path: /profile
+    controller: App\Controller\ProfileController::profile
+    methods: [GET, POST]
+
+profile_import:
+    path: /profile/import
+    controller: App\Controller\ProfileController::importPhotos
+    methods: [POST]
