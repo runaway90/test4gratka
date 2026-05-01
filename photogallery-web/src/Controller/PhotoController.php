@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Photo;
+use App\Entity\User;
 use App\Repository\LikeRepository;
 use App\Service\LikeService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,10 +23,10 @@ class PhotoController extends AbstractController
     }
 
     #[Route('/photo/{id}/like', name: 'photo_like', methods: ['POST'])]
-    public function like(int $id): Response
+    public function like(string $id): Response
     {
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof User) {
             return $this->redirectToRoute('login');
         }
 

@@ -144,11 +144,6 @@
             color: white;
             padding: 60px 20px;
         }
-
-        .empty-state h2 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
     </style>
 {% endblock %}
 
@@ -159,11 +154,13 @@
                 <div class="photo-card">
                     <div class="photo-image-container">
                         <img src="{{ photo.imageUrl }}" alt="{{ photo.description }}">
-                        {% if currentUser %}
-                            <a href="{{ path('photo_like', {id: photo.id}) }}" class="like-button {{ userLikes[photo.id] ? 'liked' : '' }}">
-                                {{ userLikes[photo.id] ? '❤️' : '🤍' }}
-                                <span>{{ photo.likeCounter }}</span>
-                            </a>
+                        {% if app.user %}
+                            <form action="{{ path('photo_like', {id: photo.id}) }}" method="post" style="display: inline;">
+                                <button type="submit" class="like-button {{ userLikes[photo.id.toRfc4122()] ? 'liked' : '' }}">
+                                    {{ userLikes[photo.id.toRfc4122()] ? '❤️' : '🤍' }}
+                                    <span>{{ photo.likeCounter }}</span>
+                                </button>
+                            </form>
                         {% else %}
                             <span class="like-button disabled" title="Login to like">
                                 🤍
@@ -218,4 +215,3 @@
         </div>
     {% endif %}
 {% endblock %}
-
