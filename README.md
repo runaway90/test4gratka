@@ -40,11 +40,14 @@ cd photogallery-api
 docker compose exec api mix ecto.migrate
 docker compose exec api mix run priv/repo/seeds.exs
 cd ..
+# Logi API
+docker compose exec api cat var/log/dev.log
 
 # Konfiguracja Web
 cd photogallery-web
 docker compose exec web composer install
 docker compose exec web php bin/console doctrine:migrations:migrate --no-interaction
-docker compose exec web php bin/console app:seed
 cd ..
+# Logi web
+docker compose exec web cat var/log/dev.log
 ```

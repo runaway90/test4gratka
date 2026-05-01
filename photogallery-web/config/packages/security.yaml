@@ -16,11 +16,7 @@ security:
             lazy: true
             stateless: true
             provider: app_user_provider
-            jwt:
-                token_extractors:
-                    cookie:
-                        enabled: true
-                        name: BEARER
+            jwt: ~
             entry_point: App\Security\AuthenticationEntryPoint
 
     access_control:

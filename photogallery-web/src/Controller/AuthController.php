@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Repository\UserRepository;
+use App\Service\AuthService;
+use App\Service\CookieService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class AuthController extends AbstractController
 {
@@ -19,7 +19,8 @@ class AuthController extends AbstractController
         Request $request,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
-        JWTTokenManagerInterface $jwtManager
+        JWTTokenManagerInterface $jwtManager,
+        CookieService $cookieService
     ): Response {
         if ($request->isMethod('GET')) {
             return $this->render('login/index.html.twig');
@@ -36,36 +37,21 @@ class AuthController extends AbstractController
         $user = $userRepository->findOneBy(['username' => $username]);
 
         if (!$user || !$passwordHasher->isPasswordValid($user, $password)) {
-            throw new AccessDeniedException('Invalid credentials');
+            $this->addFlash('error', 'Invalid credentials');
+            return $this->redirectToRoute('login');
         }
 
         $token = $jwtManager->create($user);
 
         $response = $this->redirectToRoute('home');
-        $response->headers->setCookie(
-            new Cookie(
-                'BEARER', // The name of the cookie
-                $token,   // The value of the cookie
-                time() + 3600, // The expiration date
-                '/',      // The path on the server where the cookie will be available
-                null,     // The domain that the cookie is available to
-                true,     // Indicates that the cookie should only be transmitted over a secure HTTPS connection
-                true,     // Indicates that the cookie will be made accessible only through the HTTP protocol
-                false,
-                'lax'
-            )
-        );
+        $response->headers->setCookie($cookieService->createAuthCookie($token));
         $this->addFlash('success', 'Welcome back, ' . $user->getUsername() . '!');
 
         return $response;
     }
 
-    public function logout(): Response
+    public function logout(AuthService $authService): Response
     {
-        $response = $this->redirectToRoute('home');
-        $response->headers->clearCookie('BEARER');
-        $this->addFlash('info', 'You have been logged out successfully.');
-
-        return $response;
+        return $authService->logout();
     }
 }

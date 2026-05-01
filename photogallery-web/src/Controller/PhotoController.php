@@ -5,43 +5,36 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\Photo;
-use App\Entity\User;
 use App\Likes\LikeRepository;
 use App\Likes\LikeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class PhotoController extends AbstractController
 {
-    private LikeRepository $likeRepository;
-    private LikeService $likeService;
-
-    public function __construct(LikeRepository $likeRepository, LikeService $likeService)
-    {
-        $this->likeRepository = $likeRepository;
-        $this->likeService = $likeService;
+    public function __construct(
+        private LikeRepository $likeRepository,
+        private LikeService $likeService
+    ) {
     }
 
-    public function like($id, Request $request, EntityManagerInterface $em): Response
+    public function like(int $id, EntityManagerInterface $em): Response
     {
-        $session = $request->getSession();
-        $userId = $session->get('user_id');
-
-        if (!$userId) {
+        $user = $this->getUser();
+        if (!$user) {
             $this->addFlash('error', 'You must be logged in to like photos.');
-            return $this->redirectToRoute('home');
+            return $this->redirectToRoute('login');
         }
 
-        $user = $em->getRepository(User::class)->find($userId);
+        /** @var Photo|null $photo */
         $photo = $em->getRepository(Photo::class)->find($id);
-
-        $this->likeRepository->setUser($user);
 
         if (!$photo) {
             throw $this->createNotFoundException('Photo not found');
         }
+
+        $this->likeRepository->setUser($user);
 
         if ($this->likeRepository->hasUserLikedPhoto($photo)) {
             $this->likeRepository->unlikePhoto($photo);

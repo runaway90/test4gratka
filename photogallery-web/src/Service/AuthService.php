@@ -4,39 +4,25 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Repository\AuthTokenRepository;
-use App\Repository\UserRepository;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class AuthService
 {
     public function __construct(
-        private AuthTokenRepository $authTokenRepository,
-        private UserRepository $userRepository,
+        private UrlGeneratorInterface $urlGenerator,
         private RequestStack $requestStack
     ) {
     }
 
-    public function login(string $username, string $token): void
+    public function logout(): RedirectResponse
     {
-        $authToken = $this->authTokenRepository->findOneByToken($token);
-        if (!$authToken) {
-            throw new AccessDeniedException('Invalid token');
-        }
+        $response = new RedirectResponse($this->urlGenerator->generate('home'));
+        $response->headers->clearCookie('BEARER');
 
-        $user = $this->userRepository->findOneByUsername($username);
-        if (!$user) {
-            throw new NotFoundHttpException('User not found');
-        }
-        $session = $this->requestStack->getSession();
-        $session->set('user_id', $user->getId());
-        $session->set('username', $user->getUsername());
-    }
+        $this->requestStack->getSession()->getFlashBag()->add('info', 'You have been logged out successfully.');
 
-    public function logout(): void
-    {
-        $this->requestStack->getSession()->clear();
+        return $response;
     }
 }
