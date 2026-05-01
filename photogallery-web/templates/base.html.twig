@@ -74,7 +74,7 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            min-width: 180px;
+            min-width: 220px;
             opacity: 0;
             visibility: hidden;
             transform: translateY(-10px);
@@ -87,13 +87,19 @@
             transform: translateY(0);
         }
         
-        .profile-dropdown a {
+        .profile-dropdown a, .profile-dropdown .welcome-message {
             display: block;
             padding: 12px 20px;
             color: #333;
             text-decoration: none;
             transition: background 0.2s ease;
             font-size: 14px;
+        }
+
+        .profile-dropdown .welcome-message {
+            color: #666;
+            font-weight: 500;
+            border-bottom: 1px solid #e0e0e0;
         }
         
         .profile-dropdown a:first-child {
@@ -106,12 +112,6 @@
         
         .profile-dropdown a:hover {
             background: #f8f9fa;
-        }
-        
-        .profile-dropdown-separator {
-            height: 1px;
-            background: #e0e0e0;
-            margin: 0;
         }
         
         .flash-messages {
@@ -183,18 +183,26 @@
         </div>
     {% endfor %}
     
-    {% if app.session.get('user_id') %}
-        <div class="profile-menu">
+    <div class="profile-menu">
+        {% if app.user %}
             <a href="{{ path('profile') }}" class="profile-icon" title="My Profile">
                 👤
             </a>
             <div class="profile-dropdown">
+                <div class="welcome-message">Welcome, <strong>{{ app.user.username }}</strong>!</div>
                 <a href="{{ path('profile') }}">👤 My Profile</a>
-                <div class="profile-dropdown-separator"></div>
                 <a href="{{ path('logout') }}">🚪 Logout</a>
             </div>
-        </div>
-    {% endif %}
+        {% else %}
+            <a href="{{ path('login') }}" class="profile-icon" title="Login">
+                🚪
+            </a>
+            <div class="profile-dropdown">
+                <div class="welcome-message">You are not logged in.</div>
+                <a href="{{ path('login') }}">🚪 Login</a>
+            </div>
+        {% endif %}
+    </div>
     
     <div class="container">
         <header>
@@ -206,4 +214,3 @@
     </div>
 </body>
 </html>
-
