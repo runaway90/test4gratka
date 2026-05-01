@@ -45,7 +45,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $bio = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Photo::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Photo::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $photos;
 
     public function __construct()
@@ -173,11 +173,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removePhoto(Photo $photo): self
     {
-        if ($this->photos->removeElement($photo)) {
-            if ($photo->getUser() === $this) {
-                $photo->setUser(null);
-            }
-        }
+        $this->photos->removeElement($photo);
         return $this;
     }
 }
