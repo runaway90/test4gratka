@@ -21,8 +21,7 @@
   
 *Dodałem gotowe rozwiązanie w run.sh dla pierwszej installacji oraz czyszczenia kontenerów i bazy danych*
 
-TASK 1 
-Naprawa blędów:
+### TASK 1. Naprawa blędów:
 
  ~~- SQL-injection w AuthController.php~~
 - Inkapsulacja Auth i Profile, tworzenie servisów.
@@ -34,6 +33,7 @@ Naprawa blędów:
 - 
 - 
 
+# Dlaczego przepisałem system authoryzacji?
 ### Stary System (`AuthToken` + Sesja)
 *   **Sposób logowania:** Użytkownik musiał przejść pod specjalny link z tokenem w adresie URL.
 *   **Przechowywanie stanu:** Po weryfikacji tokenu, serwer tworzył plik sesji na dysku. Każdy zalogowany użytkownik to osobny plik na serwerze.
@@ -50,10 +50,37 @@ Naprawa blędów:
 *   **Gotowość na przyszłość:** Architektura jest gotowa do obsługi API lub aplikacji mobilnych bez żadnych zmian w logice uwierzytelniania.
 
 
-### Dlaczego Używam UUID Zamiast Zwykłego ID?
+# Dlaczego Używam UUID Zamiast Zwykłego ID?
 *   **Bezpieczeństwo i Ukrywanie Informacji**
     Twoje adresy URL nie zdradzają już wewnętrznej struktury ani liczby danych w systemie. Zamiast `/zdjecia/123`, masz `/zdjecia/a1b2c3d4-e5f6...`. Nikt nie jest w stanie odgadnąć ID następnego zdjęcia ani policzyć, ilu masz użytkowników, po prostu zmieniając cyfrę w adresie.
 *   **Niezależność od Bazy Danych**
     Możesz wygenerować unikalne ID dla nowego obiektu w kodzie PHP, jeszcze *przed* zapisaniem go do bazy. Daje to ogromną elastyczność. Obiekt ma swoje ID od samego początku istnienia, co ułatwia pracę z bardziej złożonymi systemami, np. gdy trzeba przekazać go do innego serwisu przed ostatecznym zapisem.
 *   **Brak Konfliktów i Skalowalność**
     Prawdopodobieństwo, że dwa różne serwery wygenerują ten sam UUID, jest praktycznie zerowe. To kluczowe, jeśli aplikacja będzie rozwijana i w przyszłości może działać na wielu serwerach jednocześnie. Możesz bezpiecznie łączyć dane z różnych środowisk (np. deweloperskiego i produkcyjnego) bez obawy o konflikt ID.
+
+.
+.
+.
+
+# Dlaczego nie używam interfejsów w tym zadaniu testowym
+
+## Szczegółowe wyjaśnienie
+
+### 1. Zasada YAGNI (You Ain't Gonna Need It)
+
+Najważniejszą zasadą, którą się tutaj kieruje, jest YAGNI ("Nie będziesz tego potrzebować"). Interfejsy wprowadzam wtedy, gdy potrzebuje zdefiniować kontrakt, który może mieć wiele różnych implementacji. W naszym projekcie przykladowo:
+- `LikeService` ma jedną, konkretną logikę.
+- `LikeRepository` jest ściśle powiązany z Doctrine.
+Nie ma obecnie potrzeby tworzenia alternatywnych wersji tych klas, więc interfejsy nie są konieczne.
+### 2. Prostota i czytelność
+Kod bez dodatkowych warstw abstrakcji jest prostszy do czytania i nawigacji. Kiedy klikasz na nazwę serwisu, od razu przechodzisz do jego implementacji, a nie do pliku interfejsu.
+### 3. Testowalność
+Nowoczesne narzędzia do testowania (np. PHPUnit z Mockery) pozwalają na łatwe tworzenie "zaślepek" (mocków) dla konkretnych klas. Oznacza to, że **nie potrzebujemy interfejsów, aby móc efektywnie testować nasz kod**.
+
+## Kiedy interfejsy byłyby uzasadnione?
+Warto byłoby je dodać, gdybyśmy w przyszłości stanęli przed jedną z poniższych sytuacji:
+-   **Wiele implementacji:** Gdybyśmy chcieli, aby lajki mogły być przechowywane w różny sposób (np. w bazie danych PostgreSQL, w Redis, a dla testów w pamięci). Interfejs `LikeRepositoryInterface` pozwoliłby na łatwą zamianę tych implementacji.
+-   **Moduł jako biblioteka:** Gdyby system lajków miał stać się oddzielną biblioteką, używaną w wielu różnych projektach (potencjalnie nie tylko opartych o Symfony).
+-   **Złożona logika biznesowa:** Przy bardzo skomplikowanych domenach, gdzie chcemy całkowicie oddzielić logikę biznesową od warstwy dostępu do danych (frameworka).
+## Wniosek
+Brak interfejsów(w summie i trait-ów) w tym projekcie to **świadoma decyzja**, która stawia na prostotę i pragmatyzm. Kod jest łatwiejszy w utrzymaniu i spełnia obecne wymagania. Jeśli w przyszłości projekt będzie się rozwijał w kierunku, który uzasadni wprowadzenie interfejsów, będzie można je dodać w ramach refaktoryzacji.

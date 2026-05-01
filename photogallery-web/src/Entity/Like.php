@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Likes;
+namespace App\Entity;
 
-use App\Entity\Photo;
-use App\Entity\User;
+use App\Repository\LikeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: LikeRepository::class)]
 #[ORM\Table(name: 'likes')]
+#[ORM\UniqueConstraint(name: 'like_unique', columns: ['user_id', 'photo_id'])]
+#[UniqueEntity(fields: ['user', 'photo'])]
 class Like
 {
     #[ORM\Id]
@@ -31,6 +33,11 @@ class Like
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getUser(): User

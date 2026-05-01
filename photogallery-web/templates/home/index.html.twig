@@ -9,7 +9,7 @@
             margin-top: 30px;
             justify-content: center;
         }
-        
+
         .photo-card {
             background: white;
             border-radius: 12px;
@@ -18,29 +18,29 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             position: relative;
         }
-        
+
         .photo-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 40px rgba(0,0,0,0.3);
         }
-        
+
         .photo-image-container {
             position: relative;
             width: 100%;
             height: 400px;
         }
-        
+
         .photo-card img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
-        
+
         .photo-info {
             padding: 20px;
         }
-        
+
         .like-button {
             position: absolute;
             bottom: 15px;
@@ -60,23 +60,23 @@
             transition: all 0.2s ease;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
-        
+
         .like-button:hover {
             background: #667eea;
             color: white;
             transform: scale(1.05);
         }
-        
+
         .like-button.liked {
             background: #667eea;
             color: white;
         }
-        
+
         .like-button.disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        
+
         .photo-description {
             color: #333;
             font-size: 1em;
@@ -84,7 +84,7 @@
             line-height: 1.5;
             min-height: 45px;
         }
-        
+
         .photo-meta {
             display: flex;
             flex-direction: column;
@@ -92,17 +92,17 @@
             font-size: 0.9em;
             color: #666;
         }
-        
+
         .photo-meta-item {
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
+
         .photo-meta-item strong {
             color: #667eea;
         }
-        
+
         .author {
             display: flex;
             align-items: center;
@@ -111,7 +111,7 @@
             padding-top: 15px;
             border-top: 1px solid #eee;
         }
-        
+
         .author-avatar {
             width: 40px;
             height: 40px;
@@ -124,27 +124,27 @@
             font-weight: bold;
             font-size: 1.2em;
         }
-        
+
         .author-info {
             flex: 1;
         }
-        
+
         .author-name {
             font-weight: 600;
             color: #333;
         }
-        
+
         .author-username {
             font-size: 0.85em;
             color: #999;
         }
-        
+
         .empty-state {
             text-align: center;
             color: white;
             padding: 60px 20px;
         }
-        
+
         .empty-state h2 {
             font-size: 2em;
             margin-bottom: 10px;
@@ -175,7 +175,7 @@
                         <div class="photo-description">
                             {{ photo.description|default('No description provided') }}
                         </div>
-                        
+
                         <div class="photo-meta">
                             {% if photo.location %}
                                 <div class="photo-meta-item">
@@ -183,7 +183,7 @@
                                     <strong>Location:</strong> {{ photo.location }}
                                 </div>
                             {% endif %}
-                            
+
                             {% if photo.camera %}
                                 <div class="photo-meta-item">
                                     <span>📷</span>
@@ -191,7 +191,7 @@
                                 </div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="author">
                             <div class="author-avatar">
                                 {{ photo.user.username|slice(0, 1)|upper }}

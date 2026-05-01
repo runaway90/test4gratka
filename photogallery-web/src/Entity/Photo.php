@@ -116,9 +116,15 @@ class Photo
         return $this->likeCounter;
     }
 
-    public function setLikeCounter(int $likeCounter): self
+    public function incrementLikeCounter(): self
     {
-        $this->likeCounter = $likeCounter;
+        $this->likeCounter++;
+        return $this;
+    }
+
+    public function decrementLikeCounter(): self
+    {
+        $this->likeCounter--;
         return $this;
     }
 }
