@@ -8,6 +8,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class ExceptionListener
 {
@@ -18,6 +20,11 @@ class ExceptionListener
     public function onKernelException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
+
+        if ($exception instanceof AuthenticationException || $exception instanceof AccessDeniedException) {
+            return;
+        }
+
         $this->logger->error($exception->getMessage(), ['exception' => $exception]);
 
         $response = new JsonResponse();

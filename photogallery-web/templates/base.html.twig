@@ -190,6 +190,7 @@
             </a>
             <div class="profile-dropdown">
                 <div class="welcome-message">Welcome, <strong>{{ app.user.username }}</strong>!</div>
+                <a href="{{ path('home') }}">🏠 Home</a> {# Added Home link #}
                 <a href="{{ path('profile') }}">👤 My Profile</a>
                 <a href="{{ path('logout') }}">🚪 Logout</a>
             </div>
@@ -199,6 +200,7 @@
             </a>
             <div class="profile-dropdown">
                 <div class="welcome-message">You are not logged in.</div>
+                <a href="{{ path('home') }}">🏠 Home</a>
                 <a href="{{ path('login') }}">🚪 Login</a>
             </div>
         {% endif %}

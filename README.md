@@ -51,3 +51,4 @@ cd ..
 # Logi web
 docker compose exec web cat var/log/dev.log
 ```
+test_token_user1_abc123

@@ -16,16 +16,16 @@ class ApiTokenFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('apiToken', TextareaType::class, [
+            ->add('phoenixApiToken', TextareaType::class, [
                 'label' => 'PhoenixAPI Access Token',
                 'required' => false,
                 'attr' => [
                     'rows' => 5,
-                    'placeholder' => 'Paste your access token here...',
+                    'placeholder' => 'Paste your PhoenixAPI access token here...',
                 ],
             ])
             ->add('save', SubmitType::class, [
-                'label' => 'Save Token',
+                'label' => 'Save PhoenixAPI Token', // Changed label to reflect single token
             ]);
     }
 

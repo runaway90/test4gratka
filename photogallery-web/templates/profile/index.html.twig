@@ -12,14 +12,14 @@
             padding: 40px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
-        
+
         .profile-header {
             text-align: center;
             margin-bottom: 40px;
             padding-bottom: 30px;
             border-bottom: 2px solid #f0f0f0;
         }
-        
+
         .profile-avatar {
             width: 120px;
             height: 120px;
@@ -34,30 +34,30 @@
             margin: 0 auto 20px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
-        
+
         .profile-username {
             font-size: 2em;
             color: #333;
             margin-bottom: 5px;
         }
-        
+
         .profile-handle {
             font-size: 1.2em;
             color: #999;
         }
-        
+
         .profile-details {
             display: grid;
             gap: 25px;
         }
-        
+
         .profile-field {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 12px;
             border-left: 4px solid #667eea;
         }
-        
+
         .profile-field-label {
             font-size: 0.85em;
             color: #667eea;
@@ -66,18 +66,18 @@
             letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
-        
+
         .profile-field-value {
             font-size: 1.1em;
             color: #333;
             word-wrap: break-word;
         }
-        
+
         .profile-field-empty {
             color: #999;
             font-style: italic;
         }
-        
+
         .profile-bio {
             background: #f8f9fa;
             padding: 20px;
@@ -85,7 +85,7 @@
             border-left: 4px solid #764ba2;
             margin-top: 10px;
         }
-        
+
         .profile-bio-label {
             font-size: 0.85em;
             color: #764ba2;
@@ -94,13 +94,13 @@
             letter-spacing: 0.5px;
             margin-bottom: 8px;
         }
-        
+
         .profile-bio-text {
             font-size: 1.1em;
             color: #555;
             line-height: 1.6;
         }
-        
+
         .back-button, .action-button {
             display: inline-block;
             margin-top: 30px;
@@ -117,12 +117,12 @@
             font-family: inherit;
             font-size: inherit;
         }
-        
+
         .back-button:hover, .action-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
-        
+
         .profile-stats {
             display: flex;
             justify-content: center;
@@ -131,18 +131,18 @@
             padding-top: 30px;
             border-top: 2px solid #f0f0f0;
         }
-        
+
         .stat-item {
             text-align: center;
         }
-        
+
         .stat-number {
             font-size: 2em;
             font-weight: bold;
             color: #667eea;
             margin-bottom: 5px;
         }
-        
+
         .stat-label {
             font-size: 0.9em;
             color: #999;
@@ -178,6 +178,23 @@
             display: flex;
             gap: 20px;
             justify-content: center;
+            margin-top: 20px;
+        }
+
+        .toggle-button {
+            background: #007bff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            margin-bottom: 10px;
+        }
+        .toggle-button:hover {
+            background: #0056b3;
+        }
+        .hidden-form {
+            display: none;
         }
     </style>
 {% endblock %}
@@ -197,7 +214,7 @@
             </h1>
             <div class="profile-handle">@{{ user.username }}</div>
         </div>
-        
+
         <div class="profile-details">
             <div class="profile-field">
                 <div class="profile-field-label">Email</div>
@@ -223,14 +240,14 @@
                 </div>
             {% endif %}
         </div>
-        
+
         {% if user.bio %}
             <div class="profile-bio">
                 <div class="profile-bio-label">About Me</div>
                 <div class="profile-bio-text">{{ user.bio }}</div>
             </div>
         {% endif %}
-        
+
         <div class="profile-stats">
             <div class="stat-item">
                 <div class="stat-number">{{ user.photos|length }}</div>
@@ -239,22 +256,56 @@
         </div>
 
         <div class="api-section">
-            <h2>PhoenixAPI Integration</h2>
-            {{ form_start(tokenForm) }}
-            <div class="form-group">
-                {{ form_widget(tokenForm.apiToken) }}
+            <h2>API Integration</h2>
+
+            {# PhoenixAPI Access Token section #}
+            <div class="profile-field" style="margin-top: 20px;">
+                <div class="profile-field-label">PhoenixAPI Access Token</div>
+                <div class="profile-field-value">
+                    {% if user.phoenixApiToken %}
+                        <span id="phoenixApiTokenDisplay">{{ user.phoenixApiToken|slice(0, 10) }}</span>
+                        <br><br>
+                        <button type="button" class="toggle-button" onclick="togglePhoenixApiForm()">Update Token</button>
+                    {% else %}
+                        <span class="profile-field-empty">Not set</span>
+                        <button type="button" class="toggle-button" onclick="togglePhoenixApiForm()">Add Token</button>
+                    {% endif %}
+                </div>
             </div>
+
+            {# Hidden form for PhoenixAPI Token #}
+            <div id="phoenixApiFormContainer" class="hidden-form" style="margin-top: 20px;">
+                {{ form_start(tokenForm) }}
+                <div class="form-group">
+                    {# Render only the phoenixApiToken field #}
+                    {{ form_row(tokenForm.phoenixApiToken) }}
+                </div>
+                <div style="text-align: center;">
+                    {{ form_widget(tokenForm.save, {'attr': {'class': 'action-button'}}) }}
+                </div>
+                {{ form_end(tokenForm) }}
+            </div>
+
             <div class="form-actions">
-                {{ form_widget(tokenForm.save, {'attr': {'class': 'action-button'}}) }}
-                <form action="{{ path('profile_import') }}" method="post" style="display: inline;">
-                    <button type="submit" class="action-button">Import Photos</button>
+                <form action="{{ path('profile_import') }}" method="post">
+                    <button type="submit" class="action-button" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">Import Photos from PhoenixAPI</button>
                 </form>
             </div>
-            {{ form_end(tokenForm) }}
         </div>
-        
+
         <div style="text-align: center; margin-top: 20px;">
             <a href="{{ path('home') }}" class="back-button">← Back to Gallery</a>
         </div>
     </div>
+
+    <script>
+        function togglePhoenixApiForm() {
+            const formContainer = document.getElementById('phoenixApiFormContainer');
+            if (formContainer.classList.contains('hidden-form')) {
+                formContainer.classList.remove('hidden-form');
+            } else {
+                formContainer.classList.add('hidden-form');
+            }
+        }
+    </script>
 {% endblock %}

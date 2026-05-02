@@ -48,6 +48,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $apiToken = null;
 
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $phoenixApiToken = null;
+
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Photo::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $photos;
 
@@ -168,6 +171,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setApiToken(?string $apiToken): self
     {
         $this->apiToken = $apiToken;
+        return $this;
+    }
+
+    public function getPhoenixApiToken(): ?string
+    {
+        return $this->phoenixApiToken;
+    }
+
+    public function setPhoenixApiToken(?string $phoenixApiToken): self
+    {
+        $this->phoenixApiToken = $phoenixApiToken;
         return $this;
     }
 

@@ -11,3 +11,7 @@ services:
     App\EventListener\ExceptionListener:
         tags:
             - { name: kernel.event_listener, event: kernel.exception }
+
+parameters:
+    env(PHOENIX_API_URL): 'http://localhost:4000/api/photos'
+    app.phoenix_api_url: '%env(PHOENIX_API_URL)%'
