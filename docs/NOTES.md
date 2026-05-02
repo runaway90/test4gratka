@@ -84,3 +84,21 @@ Warto byłoby je dodać, gdybyśmy w przyszłości stanęli przed jedną z poni�
 -   **Złożona logika biznesowa:** Przy bardzo skomplikowanych domenach, gdzie chcemy całkowicie oddzielić logikę biznesową od warstwy dostępu do danych (frameworka).
 ## Wniosek
 Brak interfejsów(w summie i trait-ów) w tym projekcie to **świadoma decyzja**, która stawia na prostotę i pragmatyzm. Kod jest łatwiejszy w utrzymaniu i spełnia obecne wymagania. Jeśli w przyszłości projekt będzie się rozwijał w kierunku, który uzasadni wprowadzenie interfejsów, będzie można je dodać w ramach refaktoryzacji.
+
+---
+
+# TASK 2. Import zdjęć z PhoenixAPI
+
+### Nagłówek uwierzytelniający
+PhoenixAPI oczekuje nagłówka `access-token`, a nie standardowego `Authorization: Bearer`. To ważna różnica — błędny nagłówek skutkuje odpowiedzią 401 bez żadnej wskazówki w treści błędu. Zdecydowałem się trzymać się kontraktu zdefiniowanego po stronie API i nie zmieniać PhoenixAPI, ponieważ mogłoby to złamać innych klientów korzystających z tego samego endpointu.
+
+### Deduplikacja zdjęć
+Przy imporcie sprawdzam czy zdjęcie o danym `imageUrl` już istnieje w bazie (`findOneBy(['imageUrl' => ...])`). Dzięki temu wielokrotne naciśnięcie "Importuj" nie tworzy duplikatów. Alternatywą byłoby dodanie unikalnego indeksu na kolumnie `image_url` w bazie danych — to rozwiązanie byłoby bardziej niezawodne (ochrona na poziomie bazy), ale wymagałoby dodatkowej migracji.
+
+### Konfiguracja URL PhoenixAPI
+URL do PhoenixAPI jest przechowywany jako parametr Symfony oparty na zmiennej środowiskowej `PHOENIX_API_URL` z wartością domyślną. Pozwala to na łatwą zmianę adresu bez modyfikacji kodu (np. dla środowiska produkcyjnego). W `docker-compose.yml` dodałem `extra_hosts: host-gateway`, ponieważ dwa projekty działają w oddzielnych sieciach Docker i kontener web musi dotrzeć do API przez hosta.
+
+### Komunikacja błędów
+W przypadku błędnego tokenu lub niedostępności API użytkownik otrzymuje czytelny komunikat flash zamiast surowego wyjątku. Kod HTTP z PhoenixAPI jest przekazywany w treści komunikatu, co ułatwia diagnozę problemu.
+
+---
