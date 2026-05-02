@@ -21,7 +21,7 @@
   
 *Dodałem gotowe rozwiązanie w run.sh dla pierwszej installacji oraz czyszczenia kontenerów i bazy danych*
 
-### TASK 1. Naprawa blędów:
+# TASK 1. Naprawa blędów:
 
  ~~- SQL-injection w AuthController.php~~
 - Inkapsulacja Auth i Profile, tworzenie servisów.
@@ -100,5 +100,21 @@ URL do PhoenixAPI jest przechowywany jako parametr Symfony oparty na zmiennej ś
 
 ### Komunikacja błędów
 W przypadku błędnego tokenu lub niedostępności API użytkownik otrzymuje czytelny komunikat flash zamiast surowego wyjątku. Kod HTTP z PhoenixAPI jest przekazywany w treści komunikatu, co ułatwia diagnozę problemu.
+
+---
+
+# TASK 3. Filtrowanie zdjęć na stronie głównej
+
+### QueryBuilder z dynamicznymi warunkami
+Zamiast wielu osobnych metod (`findByLocation`, `findByCamera` itd.) używam jednej metody z tablicą filtrów i dynamicznie dodawanymi klauzulami `andWhere`. Puste pola są pomijane przez `array_filter()` w kontrolerze — filtrowanie jest addytywne (AND). Takie podejście jest łatwe do rozszerzenia o nowe pola bez zmiany interfejsu metody.
+
+### Wyszukiwanie tekstowe przez LIKE
+Dla pól tekstowych (`location`, `camera`, `description`, `username`) używam `LIKE %value%` — częściowe dopasowanie jest bardziej użyteczne niż dokładne. Użytkownik szukający `"Canon"` znajdzie zarówno `"Canon EOS R5"` jak i `"Canon 5D"`.
+
+### Filtrowanie po dacie
+Pole `taken_at` jest typem `datetime_immutable`, więc filtrowanie po dacie wymaga zakresu: `>= 2024-01-01 00:00:00 AND < 2024-01-02 00:00:00`. Użytkownik podaje tylko datę (input `type="date"`), a zakres jest obliczany automatycznie w repozytorium.
+
+### Unikanie N+1
+Przy braku filtrów używam istniejącego `findAllWithUsers()` (JOIN + SELECT user w jednym zapytaniu). `findByFilters()` robi to samo przez `leftJoin` z `addSelect('u')` — niezależnie od filtrów dane użytkownika są ładowane jednym zapytaniem.
 
 ---
