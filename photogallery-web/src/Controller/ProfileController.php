@@ -8,6 +8,7 @@ use App\Entity\Photo;
 use App\Entity\User;
 use App\Form\ApiTokenFormType;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ class ProfileController extends AbstractController
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly EntityManagerInterface $entityManager,
+        private readonly LoggerInterface $logger,
         #[Autowire('%app.phoenix_api_url%')]
         private readonly string $phoenixApiUrl
     ) {
@@ -43,9 +45,14 @@ class ProfileController extends AbstractController
         ]);
     }
 
-    public function importPhotos(#[CurrentUser] User $user): Response
+    public function importPhotos(Request $request, #[CurrentUser] User $user): Response
     {
-        $token = $user->getPhoenixApiToken(); // Use phoenixApiToken
+        if (!$this->isCsrfTokenValid('profile_import', $request->request->get('_token'))) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+            return $this->redirectToRoute('profile');
+        }
+
+        $token = $user->getPhoenixApiToken();
 
         if (!$token) {
             $this->addFlash('warning', 'Please save a PhoenixAPI Access Token before importing photos.');
@@ -53,7 +60,6 @@ class ProfileController extends AbstractController
         }
 
         try {
-            // Corrected PhoenixAPI URL
             $phoenixApiUrl = $this->phoenixApiUrl;
 
             $response = $this->httpClient->request('GET', $phoenixApiUrl, [
@@ -79,7 +85,6 @@ class ProfileController extends AbstractController
                         $photo = new Photo();
                         $photo->setImageUrl($photoData['photo_url']);
                         $photo->setUser($user);
-                        
                         $this->entityManager->persist($photo);
                         $importedCount++;
                     }
@@ -98,9 +103,8 @@ class ProfileController extends AbstractController
             }
 
         } catch (\Exception $e) {
-            // Log the exception here if you have a logger
-            // $this->logger->error('Error importing photos from PhoenixAPI: ' . $e->getMessage());
-            $this->addFlash('error', 'An unexpected error occurred during PhoenixAPI import: ' . $e->getMessage());
+            $this->logger->error('PhoenixAPI import failed', ['exception' => $e]);
+            $this->addFlash('error', 'An unexpected error occurred during PhoenixAPI import.');
         }
 
         return $this->redirectToRoute('profile');

@@ -258,7 +258,6 @@
         <div class="api-section">
             <h2>API Integration</h2>
 
-            {# PhoenixAPI Access Token section #}
             <div class="profile-field" style="margin-top: 20px;">
                 <div class="profile-field-label">PhoenixAPI Access Token</div>
                 <div class="profile-field-value">
@@ -273,11 +272,9 @@
                 </div>
             </div>
 
-            {# Hidden form for PhoenixAPI Token #}
             <div id="phoenixApiFormContainer" class="hidden-form" style="margin-top: 20px;">
                 {{ form_start(tokenForm) }}
                 <div class="form-group">
-                    {# Render only the phoenixApiToken field #}
                     {{ form_row(tokenForm.phoenixApiToken) }}
                 </div>
                 <div style="text-align: center;">
@@ -288,6 +285,7 @@
 
             <div class="form-actions">
                 <form action="{{ path('profile_import') }}" method="post">
+                    <input type="hidden" name="_token" value="{{ csrf_token('profile_import') }}">
                     <button type="submit" class="action-button" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">Import Photos from PhoenixAPI</button>
                 </form>
             </div>

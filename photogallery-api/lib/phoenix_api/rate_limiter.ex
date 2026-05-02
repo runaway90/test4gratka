@@ -6,8 +6,6 @@ defmodule PhoenixApi.RateLimiter do
   @global_limit 1000
   @global_window_ms 60 * 60 * 1000
 
-  # Public API
-
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
@@ -19,8 +17,6 @@ defmodule PhoenixApi.RateLimiter do
   def check_and_increment(user_id) do
     GenServer.call(__MODULE__, {:check_and_increment, user_id})
   end
-
-  # GenServer callbacks
 
   @impl true
   def init(_) do
@@ -58,8 +54,6 @@ defmodule PhoenixApi.RateLimiter do
       end
     end
   end
-
-  # Private helpers
 
   defp now, do: System.monotonic_time(:millisecond)
 

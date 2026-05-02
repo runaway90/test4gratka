@@ -13,7 +13,7 @@ Ten projekt składa się z dwóch oddzielnych aplikacji z własnymi bazami danyc
   - Framework: Symfony 6.4 (PHP 8.1)
 
 - **Photo Gallery API** (port 4000): Mikroserwis REST API
-  - Baza danych: `photogallery_api` (PostgreSQL, port 5433)
+  - Baza danych: `photogallery_api` (PostgreSQL, port 5432)
   - Framework: Phoenix 1.7 (Elixir 1.15)
 
 ## Szybki start

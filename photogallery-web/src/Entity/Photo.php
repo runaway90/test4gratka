@@ -124,7 +124,9 @@ class Photo
 
     public function decrementLikeCounter(): self
     {
-        $this->likeCounter--;
+        if ($this->likeCounter > 0) {
+            $this->likeCounter--;
+        }
         return $this;
     }
 }

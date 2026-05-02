@@ -35,7 +35,6 @@ class SeedDatabaseCommand extends Command
         $userRepository = $this->entityManager->getRepository(User::class);
         $photoRepository = $this->entityManager->getRepository(Photo::class);
 
-        // Sample users data
         $usersData = [
             [
                 'username' => 'nature_lover',
