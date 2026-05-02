@@ -6,15 +6,19 @@ namespace App\EventListener;
 
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Twig\Environment;
 
 class ExceptionListener
 {
-    public function __construct(private LoggerInterface $logger)
-    {
+    public function __construct(
+        private LoggerInterface $logger,
+        private Environment $twig
+    ) {
     }
 
     public function onKernelException(ExceptionEvent $event): void
@@ -27,17 +31,31 @@ class ExceptionListener
 
         $this->logger->error($exception->getMessage(), ['exception' => $exception]);
 
-        $response = new JsonResponse();
-        $response->headers->set('Content-Type', 'application/problem+json');
+        $statusCode = $exception instanceof HttpExceptionInterface
+            ? $exception->getStatusCode()
+            : Response::HTTP_INTERNAL_SERVER_ERROR;
 
-        if ($exception instanceof HttpExceptionInterface) {
-            $response->setStatusCode($exception->getStatusCode());
-            $response->setData(['detail' => $exception->getMessage()]);
-        } else {
-            $response->setStatusCode(JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
-            $response->setData(['detail' => 'An unexpected error occurred']);
+        $request = $event->getRequest();
+
+        if ($request->isXmlHttpRequest() || str_contains($request->headers->get('Accept', ''), 'application/json')) {
+            $detail = $exception instanceof HttpExceptionInterface
+                ? $exception->getMessage()
+                : 'An unexpected error occurred';
+
+            $event->setResponse(new JsonResponse(
+                ['detail' => $detail],
+                $statusCode,
+                ['Content-Type' => 'application/problem+json']
+            ));
+
+            return;
         }
 
-        $event->setResponse($response);
+        $html = $this->twig->render('bundles/TwigBundle/Exception/error.html.twig', [
+            'status_code' => $statusCode,
+            'status_text' => Response::$statusTexts[$statusCode] ?? 'Error',
+        ]);
+
+        $event->setResponse(new Response($html, $statusCode));
     }
 }
