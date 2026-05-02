@@ -48,10 +48,13 @@ class PhotoRepository extends ServiceEntityRepository
         }
 
         if (!empty($filters['taken_at'])) {
-            $date = new \DateTimeImmutable($filters['taken_at']);
-            $qb->andWhere('p.takenAt >= :taken_at_start AND p.takenAt < :taken_at_end')
-                ->setParameter('taken_at_start', $date->setTime(0, 0, 0))
-                ->setParameter('taken_at_end', $date->modify('+1 day')->setTime(0, 0, 0));
+            try {
+                $date = new \DateTimeImmutable($filters['taken_at']);
+                $qb->andWhere('p.takenAt >= :taken_at_start AND p.takenAt < :taken_at_end')
+                    ->setParameter('taken_at_start', $date->setTime(0, 0, 0))
+                    ->setParameter('taken_at_end', $date->modify('+1 day')->setTime(0, 0, 0));
+            } catch (\Exception) {
+            }
         }
 
         if (!empty($filters['username'])) {

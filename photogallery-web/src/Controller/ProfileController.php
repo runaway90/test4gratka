@@ -67,6 +67,7 @@ class ProfileController extends AbstractController
                     'access-token' => $token,
                     'Accept' => 'application/json',
                 ],
+                'timeout' => 10,
             ]);
 
             if ($response->getStatusCode() !== 200) {
@@ -80,10 +81,10 @@ class ProfileController extends AbstractController
 
             if (isset($data['photos']) && is_array($data['photos'])) {
                 foreach ($data['photos'] as $photoData) {
-                    // Prevent duplicates based on image URL
-                    if (isset($photoData['photo_url']) && !$photoRepository->findOneBy(['imageUrl' => $photoData['photo_url']])) {
+                    $url = $photoData['photo_url'] ?? null;
+                    if ($url && filter_var($url, FILTER_VALIDATE_URL) && !$photoRepository->findOneBy(['imageUrl' => $url])) {
                         $photo = new Photo();
-                        $photo->setImageUrl($photoData['photo_url']);
+                        $photo->setImageUrl($url);
                         $photo->setUser($user);
                         $this->entityManager->persist($photo);
                         $importedCount++;
@@ -101,7 +102,6 @@ class ProfileController extends AbstractController
             } else {
                 $this->addFlash('info', 'No new photos to import from PhoenixAPI.');
             }
-
         } catch (\Exception $e) {
             $this->logger->error('PhoenixAPI import failed', ['exception' => $e]);
             $this->addFlash('error', 'An unexpected error occurred during PhoenixAPI import.');

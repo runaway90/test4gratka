@@ -42,6 +42,8 @@ docker compose exec api mix run priv/repo/seeds.exs
 cd ..
 # Logi API
 docker compose exec api cat var/log/dev.log
+#Testy API
+docker compose exec -e MIX_ENV=test api mix test
 
 # Konfiguracja Web
 cd photogallery-web
@@ -50,5 +52,8 @@ docker compose exec web php bin/console doctrine:migrations:migrate --no-interac
 cd ..
 # Logi web
 docker compose exec web cat var/log/dev.log
+# Testy web
+docker compose exec web php vendor/bin/phpunit
+
 ```
 test_token_user1_abc123
