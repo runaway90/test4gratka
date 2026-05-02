@@ -5,8 +5,13 @@ defmodule PhoenixApiWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :authenticated do
+    plug PhoenixApiWeb.Plugs.Authenticate
+    plug PhoenixApiWeb.Plugs.RateLimiterPlug
+  end
+
   scope "/api", PhoenixApiWeb do
-    pipe_through :api
+    pipe_through [:api, :authenticated]
 
     get "/photos", PhotoController, :index
   end
