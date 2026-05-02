@@ -4,6 +4,15 @@ find_projects() {
     find . -maxdepth 2 -name "docker-compose.yml" -not -path "./docker-compose.yml" | sed 's|/docker-compose.yml||' | sed 's|^\./||'
 }
 
+wait_for_db() {
+    local project=$1
+    echo "   → Oczekiwanie na bazę danych..."
+    until (cd "$project" && docker compose exec -T db pg_isready -U postgres) > /dev/null 2>&1; do
+        sleep 1
+    done
+    echo "   → Baza danych gotowa!"
+}
+
 install_project() {
     local project=$1
     echo ""
@@ -12,21 +21,12 @@ install_project() {
     if [ "$project" = "photogallery-api" ]; then
         echo "   → Uruchamianie kontenerów..."
         (cd "$project" && docker compose up -d)
-        sleep 3
-        echo "   → Instalacja zależności..."
-        (cd "$project" && docker compose exec -T api mix deps.get)
-        echo "   → Migracja bazy danych..."
-        (cd "$project" && docker compose exec -T api mix ecto.migrate)
-        echo "   → Seedowanie bazy danych..."
-        (cd "$project" && docker compose exec -T api mix run priv/repo/seeds.exs)
-        echo "   ✅ $project gotowy!"
+        echo "   ✅ $project gotowy! (seeds uruchamiane automatycznie przy starcie)"
 
     elif [ "$project" = "photogallery-web" ]; then
         echo "   → Uruchamianie kontenerów..."
         (cd "$project" && docker compose up -d)
-        sleep 3
-        echo "   → Instalacja zależności..."
-        (cd "$project" && docker compose exec -T web composer install)
+        wait_for_db "$project"
         echo "   → Migracja bazy danych..."
         (cd "$project" && docker compose exec -T web php bin/console doctrine:migrations:migrate --no-interaction)
         echo "   → Seedowanie bazy danych..."
