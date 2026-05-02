@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\LikeRepository;
 use App\Repository\PhotoRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -20,9 +21,20 @@ class HomeController extends AbstractController
     }
 
     #[Route('/', name: 'home')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $photos = $this->photoRepository->findAll();
+        $filters = array_filter([
+            'location'    => $request->query->get('location'),
+            'camera'      => $request->query->get('camera'),
+            'description' => $request->query->get('description'),
+            'taken_at'    => $request->query->get('taken_at'),
+            'username'    => $request->query->get('username'),
+        ]);
+
+        $photos = empty($filters)
+            ? $this->photoRepository->findAllWithUsers()
+            : $this->photoRepository->findByFilters($filters);
+
         $currentUser = $this->getUser();
         $userLikes = [];
 
@@ -33,8 +45,9 @@ class HomeController extends AbstractController
         }
 
         return $this->render('home/index.html.twig', [
-            'photos' => $photos,
+            'photos'  => $photos,
             'userLikes' => $userLikes,
+            'filters' => $filters,
         ]);
     }
 }

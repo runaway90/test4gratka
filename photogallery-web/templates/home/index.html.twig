@@ -144,10 +144,128 @@
             color: white;
             padding: 60px 20px;
         }
+
+        .filter-form {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .filter-group label {
+            font-size: 0.75em;
+            font-weight: 600;
+            color: rgba(255,255,255,0.8);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group input {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.15);
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .filter-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .filter-group input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+        .filter-btn-submit {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn-clear {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .filter-btn:hover {
+            opacity: 0.85;
+        }
+
+        .results-count {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85em;
+            margin-bottom: 10px;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
+    <form class="filter-form" method="get" action="{{ path('home') }}">
+        <div class="filter-group">
+            <label for="f-username">Username</label>
+            <input type="text" id="f-username" name="username" value="{{ filters.username|default('') }}" placeholder="e.g. john">
+        </div>
+        <div class="filter-group">
+            <label for="f-location">Location</label>
+            <input type="text" id="f-location" name="location" value="{{ filters.location|default('') }}" placeholder="e.g. Warsaw">
+        </div>
+        <div class="filter-group">
+            <label for="f-camera">Camera</label>
+            <input type="text" id="f-camera" name="camera" value="{{ filters.camera|default('') }}" placeholder="e.g. Canon">
+        </div>
+        <div class="filter-group">
+            <label for="f-description">Description</label>
+            <input type="text" id="f-description" name="description" value="{{ filters.description|default('') }}" placeholder="keyword...">
+        </div>
+        <div class="filter-group">
+            <label for="f-taken-at">Date taken</label>
+            <input type="date" id="f-taken-at" name="taken_at" value="{{ filters.taken_at|default('') }}">
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="filter-btn filter-btn-submit">Search</button>
+            {% if filters|length > 0 %}
+                <a href="{{ path('home') }}" class="filter-btn filter-btn-clear">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if filters|length > 0 %}
+        <div class="results-count">Found {{ photos|length }} photo{{ photos|length != 1 ? 's' : '' }}</div>
+    {% endif %}
+
     {% if photos|length > 0 %}
         <div class="photo-grid">
             {% for photo in photos %}

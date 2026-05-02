@@ -24,4 +24,41 @@ class PhotoRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findByFilters(array $filters): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.user', 'u')
+            ->addSelect('u')
+            ->orderBy('p.id', 'ASC');
+
+        if (!empty($filters['location'])) {
+            $qb->andWhere('p.location LIKE :location')
+                ->setParameter('location', '%' . $filters['location'] . '%');
+        }
+
+        if (!empty($filters['camera'])) {
+            $qb->andWhere('p.camera LIKE :camera')
+                ->setParameter('camera', '%' . $filters['camera'] . '%');
+        }
+
+        if (!empty($filters['description'])) {
+            $qb->andWhere('p.description LIKE :description')
+                ->setParameter('description', '%' . $filters['description'] . '%');
+        }
+
+        if (!empty($filters['taken_at'])) {
+            $date = new \DateTimeImmutable($filters['taken_at']);
+            $qb->andWhere('p.takenAt >= :taken_at_start AND p.takenAt < :taken_at_end')
+                ->setParameter('taken_at_start', $date->setTime(0, 0, 0))
+                ->setParameter('taken_at_end', $date->modify('+1 day')->setTime(0, 0, 0));
+        }
+
+        if (!empty($filters['username'])) {
+            $qb->andWhere('u.username LIKE :username')
+                ->setParameter('username', '%' . $filters['username'] . '%');
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
