@@ -117,4 +117,24 @@ Pole `taken_at` jest typem `datetime_immutable`, więc filtrowanie po dacie wyma
 ### Unikanie N+1
 Przy braku filtrów używam istniejącego `findAllWithUsers()` (JOIN + SELECT user w jednym zapytaniu). `findByFilters()` robi to samo przez `leftJoin` z `addSelect('u')` — niezależnie od filtrów dane użytkownika są ładowane jednym zapytaniem.
 
+### UX: licznik wyników i przycisk Clear
+Przy aktywnych filtrach wyświetlam liczbę znalezionych zdjęć oraz przycisk "Clear" prowadzący do strony bez parametrów. Przycisk pojawia się tylko gdy filtry są aktywne.
+
+---
+
+# TASK 4. Rate-limiting w PhoenixAPI (Elixir/OTP)
+
+### GenServer jako rate limiter
+Rate-limiting zrealizowany przez `PhoenixApi.RateLimiter` — moduł OTP `GenServer`. Przechowuje stan w pamięci procesu BEAM VM. Procesy w Elixirze są izolowane i komunikują się przez wiadomości — `GenServer.call/2` gwarantuje sekwencyjne przetwarzanie żądań, dzięki czemu race condition jest niemożliwy bez żadnych blokad (mutex).
+
+### Dwa niezależne liczniki
+- **Per-user (sliding window):** dla każdego użytkownika przechowujemy listę timestampów. Przy każdym żądaniu odfiltrowujemy te starsze niż 10 minut — jeśli pozostało ich 5 lub więcej, żądanie jest odrzucane. Sliding window jest dokładniejszy niż fixed window — nie pozwala na "podwójny burst" na granicy okna.
+- **Global (fixed window):** prosty licznik + czas początku okna. Jeśli od początku okna minęła godzina — reset do zera. Wystarczający dla limitu 1000/godz., nie wymaga przechowywania historii.
+
+### Plug pipeline zamiast logiki w kontrolerze
+Autentykacja i rate-limiting trafiły do osobnego pipeline `:authenticated` w routerze. Kolejność plugów jest kluczowa: najpierw `Authenticate` (przypisuje `current_user` do `conn.assigns`), potem `RateLimiterPlug` (używa `user.id`). Odpowiedź `429 Too Many Requests` zawiera nagłówek `Retry-After` z liczbą sekund do następnej próby.
+
+### Supervision tree i ograniczenia
+`RateLimiter` jest zarejestrowany w drzewie nadzoru ze strategią `:one_for_one` — crash procesu nie wpływa na pozostałe usługi. Wadą in-memory podejścia jest utrata stanu przy restarcie serwera (liczniki się zerują). W środowisku produkcyjnym z wieloma węzłami warto rozważyć bibliotekę `Hammer` z backendem Redis lub ETS z replikacją przez `pg` (Erlang Process Groups).
+
 ---
