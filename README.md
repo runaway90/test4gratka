@@ -56,4 +56,3 @@ docker compose exec web cat var/log/dev.log
 docker compose exec web php vendor/bin/phpunit
 
 ```
-test_token_user1_abc123

@@ -98,6 +98,9 @@ Przy imporcie sprawdzam czy zdjęcie o danym `imageUrl` już istnieje w bazie (`
 ### Konfiguracja URL PhoenixAPI
 URL do PhoenixAPI jest przechowywany jako parametr Symfony oparty na zmiennej środowiskowej `PHOENIX_API_URL` z wartością domyślną. Pozwala to na łatwą zmianę adresu bez modyfikacji kodu (np. dla środowiska produkcyjnego). W `docker-compose.yml` dodałem `extra_hosts: host-gateway`, ponieważ dwa projekty działają w oddzielnych sieciach Docker i kontener web musi dotrzeć do API przez hosta.
 
+### Walidacja URL i timeout HTTP
+Przed zapisem każdego zdjęcia sprawdzam, czy `photo_url` jest poprawnym adresem URL (`filter_var(FILTER_VALIDATE_URL)`). Zapobiega to zapisaniu dowolnego ciągu znaków w bazie. Żądanie HTTP do PhoenixAPI ma ustawiony `timeout: 10s` — bez tego aplikacja mogłaby zawiesić się na czas nieokreślony, jeśli API jest niedostępne.
+
 ### Komunikacja błędów
 W przypadku błędnego tokenu lub niedostępności API użytkownik otrzymuje czytelny komunikat flash zamiast surowego wyjątku. Kod HTTP z PhoenixAPI jest przekazywany w treści komunikatu, co ułatwia diagnozę problemu.
 
@@ -112,7 +115,7 @@ Zamiast wielu osobnych metod (`findByLocation`, `findByCamera` itd.) używam jed
 Dla pól tekstowych (`location`, `camera`, `description`, `username`) używam `LIKE %value%` — częściowe dopasowanie jest bardziej użyteczne niż dokładne. Użytkownik szukający `"Canon"` znajdzie zarówno `"Canon EOS R5"` jak i `"Canon 5D"`.
 
 ### Filtrowanie po dacie
-Pole `taken_at` jest typem `datetime_immutable`, więc filtrowanie po dacie wymaga zakresu: `>= 2024-01-01 00:00:00 AND < 2024-01-02 00:00:00`. Użytkownik podaje tylko datę (input `type="date"`), a zakres jest obliczany automatycznie w repozytorium.
+Pole `taken_at` jest typem `datetime_immutable`, więc filtrowanie po dacie wymaga zakresu: `>= 2024-01-01 00:00:00 AND < 2024-01-02 00:00:00`. Użytkownik podaje tylko datę (input `type="date"`), a zakres jest obliczany automatycznie w repozytorium. Parsowanie daty jest opakowane w `try/catch` — nieprawidłowa wartość (`?taken_at=invalid`) jest po cichu ignorowana zamiast generować 500.
 
 ### Unikanie N+1
 Przy braku filtrów używam istniejącego `findAllWithUsers()` (JOIN + SELECT user w jednym zapytaniu). `findByFilters()` robi to samo przez `leftJoin` z `addSelect('u')` — niezależnie od filtrów dane użytkownika są ładowane jednym zapytaniem.
@@ -136,5 +139,31 @@ Autentykacja i rate-limiting trafiły do osobnego pipeline `:authenticated` w ro
 
 ### Supervision tree i ograniczenia
 `RateLimiter` jest zarejestrowany w drzewie nadzoru ze strategią `:one_for_one` — crash procesu nie wpływa na pozostałe usługi. Wadą in-memory podejścia jest utrata stanu przy restarcie serwera (liczniki się zerują). W środowisku produkcyjnym z wieloma węzłami warto rozważyć bibliotekę `Hammer` z backendem Redis lub ETS z replikacją przez `pg` (Erlang Process Groups).
+
+---
+
+# Testy
+
+### PHP (Symfony) — 15 testów, 0 błędów
+```bash
+docker compose exec web php vendor/bin/phpunit
+```
+- **Unit** (`tests/Unit/Service/LikeServiceTest.php`): 4 testy z mockami — weryfikują logikę `LikeService` (like/unlike, duplikaty, ochrona przed ujemnym licznikiem).
+- **Integration** (`tests/Integration/Repository/PhotoRepositoryTest.php`): 5 testów — weryfikują `findByFilters()` na prawdziwej bazie z rollbackiem transakcji po każdym teście.
+- **Functional** (`tests/Functional/Controller/HomeControllerTest.php`): 6 testów HTTP — weryfikują dostępność stron, formularz filtrów, przekierowania dla niezalogowanych, obsługę błędnych danych logowania.
+
+### Elixir (Phoenix) — 11 testów, 0 błędów
+```bash
+docker compose exec -e MIX_ENV=test api mix test
+```
+`MIX_ENV=test` jest wymagane jawnie, ponieważ Dockerfile ustawia `ENV MIX_ENV=dev` i bez tego flagi Mix uruchamia się w środowisku dev (bez SQL Sandbox).
+- **Rate limiter** (`test/phoenix_api/rate_limiter_test.exs`): 5 testów — per-user limit (sliding window) i global limit (fixed window).
+- **Photo controller** (`test/phoenix_api_web/controllers/photo_controller_test.exs`): 6 testów — autentykacja, izolacja danych między użytkownikami, odpowiedź 401 dla nieprawidłowego tokenu.
+
+### Konfiguracja testów
+- PHP: `phpunit.xml.dist` zawiera `force="true"` na `APP_ENV=test`, aby nadpisać `APP_ENV=dev` z `docker-compose.yml`.
+- Elixir: `config/test.exs` używa `pool: Ecto.Adapters.SQL.Sandbox` z hostem `db` (Docker).
+- Baza testowa PHP tworzona przez: `docker compose exec -e APP_ENV=test web php bin/console doctrine:database:create --if-not-exists && doctrine:migrations:migrate`
+- Baza testowa Elixir: `docker compose exec -e MIX_ENV=test api mix ecto.create`
 
 ---
