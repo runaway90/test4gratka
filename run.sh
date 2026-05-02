@@ -13,26 +13,33 @@ wait_for_db() {
     echo "   → Baza danych gotowa!"
 }
 
-install_project() {
+seed_if_empty() {
     local project=$1
-    echo ""
-    echo "📦 Instalacja $project..."
 
     if [ "$project" = "photogallery-api" ]; then
-        echo "   → Uruchamianie kontenerów..."
-        (cd "$project" && docker compose up -d)
-        echo "   ✅ $project gotowy! (seeds uruchamiane automatycznie przy starcie)"
+        echo "   → Sprawdzanie danych w bazie API..."
+        user_count=$(cd "$project" && docker compose exec -T api mix run -e "IO.puts(PhoenixApi.Repo.aggregate(PhoenixApi.Accounts.User, :count))" 2>/dev/null | tail -1 | tr -d '[:space:]')
+        if [ "$user_count" = "0" ] || [ -z "$user_count" ]; then
+            echo "   → Baza pusta – seedowanie..."
+            (cd "$project" && docker compose exec -T api mix run priv/repo/seeds.exs)
+        else
+            echo "   → Dane już istnieją (${user_count} użytkowników) – pomijam seedy."
+        fi
 
     elif [ "$project" = "photogallery-web" ]; then
-        echo "   → Uruchamianie kontenerów..."
-        (cd "$project" && docker compose up -d)
-        wait_for_db "$project"
-        echo "   → Migracja bazy danych..."
-        (cd "$project" && docker compose exec -T web php bin/console doctrine:migrations:migrate --no-interaction)
-        echo "   → Seedowanie bazy danych..."
+        echo "   → Seedowanie bazy Web (idempotentne)..."
         (cd "$project" && docker compose exec -T web php bin/console app:seed)
-        echo "   ✅ $project gotowy!"
     fi
+}
+
+start_project() {
+    local project=$1
+    echo ""
+    echo "▶  Start $project..."
+    (cd "$project" && docker compose up -d)
+    wait_for_db "$project"
+    seed_if_empty "$project"
+    echo "   ✅ $project gotowy!"
 }
 
 case "$1" in
@@ -41,7 +48,19 @@ case "$1" in
         echo ""
 
         for project in $(find_projects); do
-            install_project "$project"
+            echo ""
+            echo "📦 Instalacja $project..."
+
+            (cd "$project" && docker compose up -d)
+            wait_for_db "$project"
+
+            if [ "$project" = "photogallery-web" ]; then
+                echo "   → Migracja bazy danych..."
+                (cd "$project" && docker compose exec -T web php bin/console doctrine:migrations:migrate --no-interaction)
+            fi
+
+            seed_if_empty "$project"
+            echo "   ✅ $project gotowy!"
         done
 
         echo ""
@@ -53,11 +72,10 @@ case "$1" in
         ;;
 
     start)
-        echo "Start all projects in repo"
+        echo "🚀 Start wszystkich projektów"
 
         for project in $(find_projects); do
-            echo "   → Start $project..."
-            (cd "$project" && docker compose up -d)
+            start_project "$project"
         done
 
         echo ""
@@ -91,7 +109,7 @@ case "$1" in
     *)
         echo "Usage:"
         echo "  ./run.sh install - Pełna instalacja wszystkich projektów (kontenery + bazy danych)"
-        echo "  ./run.sh start   - Uruchomienie wszystkich projektów"
+        echo "  ./run.sh start   - Uruchomienie wszystkich projektów (auto-seed jeśli baza pusta)"
         echo "  ./run.sh stop    - Zatrzymanie wszystkich projektów"
         echo "  ./run.sh clean   - Czyszczenie wszystkich projektów (usuwa bazy danych!)"
         ;;
